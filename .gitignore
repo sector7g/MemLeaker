@@ -1,0 +1,75 @@
+# Visual Studio and MSBuild
+.vs/
+.vscode/
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+.ntvs_analysis_dat
+.vs/
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vscode/
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+
+# Intermediate files
+*.ilk
+*.pdb
+*.so
+*.dylib
+*.dll
+*.exe
+*.static_lib
+*.lib
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Test results
+TestResults/
+
+# User-specific files
+*.userprefs
+*.usertasks
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Local environment/settings
+.env
+.env.local
+appsettings.local.json
