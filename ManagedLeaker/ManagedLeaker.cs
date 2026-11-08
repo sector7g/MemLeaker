@@ -3,15 +3,15 @@
 // Designed by Sector 7G Consulting LLC with code generated using various LLMs.
 //
 // ManagedLeaker.cs
-// .NET Framework 4.7.2 Managed memory leak library.
+// .NET Standard 2.0 Managed memory leak library.
 // Implements three leak patterns: static collection, event handler subscription, and undisposed resources.
-// Usage: ManagedLeakerNetFx.Leaker.LeakAll(count) applies all three types.
+// Usage: ManagedLeaker.Leaker.LeakManagedMemory(count) applies all three types.
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace ManagedLeakerNetFx
+namespace ManagedLeaker
 {
     public static class Leaker
     {
@@ -28,7 +28,7 @@ namespace ManagedLeakerNetFx
         /// Applies all three managed leak types using the given count.
         /// Count must be between 1 and 5000.
         /// </summary>
-        public static void LeakAll(int count)
+        public static void LeakManagedMemory(int count)
         {
             if (count < 1 || count > 5000) return;
 

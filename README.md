@@ -39,7 +39,7 @@ Implements three different managed memory leak patterns:
 3. **Undisposed Resources Leak** - MemoryStreams stored statically without disposal
 
 **Key file:**
-- `ManagedLeaker.cs` - Leaker static class with three leak methods
+- `ManagedLeaker.cs` - ManagedLeaker static class with three leak methods
 
 ### 3. **NativeLeaker** (C++/CLI Project)
 Native memory allocator that deliberately leaks heap-allocated memory.

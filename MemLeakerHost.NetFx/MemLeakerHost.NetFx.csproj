@@ -4,15 +4,19 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B2C3D4E5-F6A7-8901-BCDE-F12345678901}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>ManagedLeakerNetFx</RootNamespace>
-    <AssemblyName>ManagedLeakerNetFx</AssemblyName>
+    <ProjectGuid>{C3D4E5F6-A7B8-9012-CDEF-123456789012}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MemLeakerHost.NetFx</RootNamespace>
+    <AssemblyName>MemLeakerHost.NetFx</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,6 +27,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -36,8 +42,22 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ManagedLeaker.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MemLeakerHost.Common\MemLeakerHost.Common.csproj">
+      <Project>{E4F5A6B7-C8D9-0123-DEFB-345678901234}</Project>
+      <Name>MemLeakerHost.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="CopyNativeLeakerDll" AfterTargets="Build">
+    <PropertyGroup>
+      <NativeBin>$(MSBuildThisFileDirectory)..\NativeLeaker\bin\$(Configuration)\</NativeBin>
+      <NativeDll>$(NativeBin)NativeLeaker.dll</NativeDll>
+    </PropertyGroup>
+    <Copy SourceFiles="$(NativeDll)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="false" Condition="Exists('$(NativeDll)')" />
+    <Copy SourceFiles="$(NativeBin)NativeLeaker.pdb" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="false" Condition="Exists('$(NativeBin)NativeLeaker.pdb')" />
+    <Warning Text="NativeLeaker.dll not found at $(NativeDll). Build the NativeLeaker ($(Configuration)|x64) project first." Condition="!Exists('$(NativeDll)')" />
+  </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
-

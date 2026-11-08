@@ -4,7 +4,7 @@
 //
 // NativeLeaker.cpp
 // Native C++ memory leak DLL.
-// Exports LeakMemory(int megabytes) which allocates and intentionally leaks heap memory.
+// Exports LeakNativeMemory(int megabytes) which allocates and intentionally leaks heap memory.
 // Allocates in 100 MB chunks, touches all bytes, and never frees.
 
 #include <windows.h>
@@ -21,9 +21,9 @@ static void Log(const char* msg) {
 }
 
 extern "C" __declspec(dllexport)
-void LeakMemory(int megabytes) {
+void LeakNativeMemory(int megabytes) {
     if (megabytes < 1 || megabytes > 5000) {
-        Log("LeakMemory: megabytes must be between 1 and 5000.");
+        Log("LeakNativeMemory: megabytes must be between 1 and 5000.");
         return;
     }
 
@@ -37,7 +37,7 @@ void LeakMemory(int megabytes) {
         if (ptr == nullptr) {
             char buf[128];
             std::snprintf(buf, sizeof(buf),
-                          "LeakMemory: malloc failed on iteration %d", iteration + 1);
+                          "LeakNativeMemory: malloc failed on iteration %d", iteration + 1);
             Log(buf);
             return;
         }
@@ -52,7 +52,7 @@ void LeakMemory(int megabytes) {
 
     char summary[128];
     std::snprintf(summary, sizeof(summary),
-                  "LeakMemory: done. %d MB leaked in %d chunk(s).",
+                  "LeakNativeMemory: done. %d MB leaked in %d chunk(s).",
                   megabytes, iteration);
     Log(summary);
 }
