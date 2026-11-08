@@ -71,31 +71,37 @@ Native unmanaged memory leak implementation. Built independently and copied to h
 ## Usage
 
 ```
-MemLeakerHost.NetFx.exe [options]
+MemLeakerHost.NetFx.exe nativeMB <1-5000> [managedCount <1-5000>] [maxCommitPct <1-99|none>]
 ```
 
-**Options:**
-- `--native <MB>` - Native memory to leak per iteration (1-5000 MB)
-- `--managed <count>` - Managed objects to leak per iteration
-- `--interval <ms>` - Milliseconds between leak iterations (default: 1000)
-- `--max-commit <pct>` - Warn if commit charge exceeds % (1-99, or -1 to disable, default: 80)
-- `--help` - Display usage information
+or
+
+```
+MemLeakerHost.NetFx.exe managedCount <1-5000> [maxCommitPct <1-99|none>]
+```
+
+**Parameters:**
+- `nativeMB <1-5000>` - Native memory to leak per allocation (1-5000 MB)
+- `managedCount <1-5000>` - Managed objects to leak per allocation (1-5000)
+- `maxCommitPct <1-99|none>` - OOM safety threshold
+  - `1-99` - Warn if predicted commit charge exceeds this percentage (default: 80)
+  - `none` - Disable OOM warnings
 
 **Examples:**
 
 Simple managed leak:
 ```
-MemLeakerHost.NetFx.exe --managed 1000
+MemLeakerHost.NetFx.exe managedCount 1000
 ```
 
 Native leak with custom threshold:
 ```
-MemLeakerHost.NetFx.exe --native 500 --max-commit 75
+MemLeakerHost.NetFx.exe nativeMB 500 maxCommitPct 75
 ```
 
 Combined native and managed, no warnings:
 ```
-MemLeakerHost.NetFx.exe --native 200 --managed 50 --max-commit -1
+MemLeakerHost.NetFx.exe nativeMB 200 managedCount 50 maxCommitPct none
 ```
 
 ## Memory Leak Mechanisms
@@ -123,7 +129,7 @@ Configurable commit charge thresholds prevent system destabilization:
 
 - Default threshold: 80% system commit charge
 - Configurable range: 1-99%
-- Disable with `--max-commit -1` for isolated testing environments
+- Disable with `maxCommitPct none` for isolated testing environments
 - Warnings appear before each allocation that would exceed threshold
 
 ## Design Principles
@@ -148,4 +154,4 @@ Designed by Sector 7G Consulting LLC with code generated using various LLMs.
 
 **MemLeaker intentionally leaks memory.** Use only on dedicated test systems or virtual machines. Never use on production systems.
 
-Misuse can render a system unstable or unusable. Always configure `--max-commit` appropriately.
+Misuse can render a system unstable or unusable. Always configure `maxCommitPct` appropriately.
