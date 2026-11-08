@@ -1,264 +1,151 @@
 # MemLeaker
 
-A Windows/.NET Framework memory leak testing and demonstration tool with interactive leak simulation across native (C++) and managed (.NET) memory.
+A cross-platform memory leak generator and diagnostic tool for testing memory management and monitoring under intentional leak conditions.
 
 ## Overview
 
-MemLeaker is designed to deliberately allocate and leak memory via multiple mechanisms—native heap, managed heap, and undisposed resources—to simulate real-world memory leak scenarios. It's useful for:
+MemLeaker deliberately allocates and leaks memory via multiple mechanisms—native heap, managed heap, and undisposed resources—to simulate real-world memory leak scenarios. It's useful for:
 
-- **Testing memory monitoring tools** (debuggers, profilers, ETW)
-- **Understanding memory leak patterns** in both native and managed code
-- **Validating Out-Of-Memory (OOM) safeguards** with configurable commit charge thresholds
-- **Demonstrating memory leak mechanisms** in educational or training contexts
+- Testing memory monitoring tools (debuggers, profilers, ETW)
+- Understanding memory leak patterns in both native and managed code
+- Validating Out-Of-Memory (OOM) safeguards with configurable commit charge thresholds
+- Demonstrating memory leak mechanisms in educational contexts
 
 ## Architecture
 
-The solution consists of three main components:
+The solution consists of three core components:
 
-### 1. **MemLeakerHostNetFx** (.NET Framework 4.7.2 Console App)
-The interactive host that orchestrates leak scenarios and displays system/process memory metrics.
+### MemLeakerHost.NetFx (.NET Framework 4.7.2 Executable)
 
-**Key responsibilities:**
-- Interactive command loop (Leak, Refresh, Quit)
-- System and process memory monitoring
-- Commit charge prediction and OOM warnings
-- Configurable safety thresholds for maximum commit percentage
+Interactive memory leak host for .NET Framework. Derives from `MemLeakerHostBase` and implements framework-specific leak invocations.
 
-**Key files:**
-- `Program.cs` - Main entry point, interactive loop, and argument parsing
-- `ProcessMemoryInfo.cs` - Windows API wrappers for process memory counters
-- `SystemMemoryInfo.cs` - System commit charge and physical memory via GlobalMemoryStatusEx
-- `MemorySnapshot.cs` - Formatted output of memory state and prediction accuracy
-- `ArgsParser.cs` - Command-line argument parsing for leak parameters and safety thresholds
+**Key Methods:**
+- `LeakNative(int megabytes)` → `UnmanagedLeaker.LeakNativeMemory(megabytes)`
+- `LeakManaged(int count)` → `ManagedLeaker.LeakManagedMemory(count)`
 
-### 2. **ManagedLeakerNetFx** (.NET Framework 4.7.2 Class Library)
-Implements three different managed memory leak patterns:
+### MemLeakerHost.Common (.NET Standard 2.0 Library)
 
-1. **Static List Leak** - Byte arrays stored in a static List that is never cleared
-2. **Event Handler Leak** - Static event subscriptions that are never unsubscribed
-3. **Undisposed Resources Leak** - MemoryStreams stored statically without disposal
+Reusable shared infrastructure for leak hosts, memory monitoring, and diagnostics.
 
-**Key file:**
-- `ManagedLeaker.cs` - ManagedLeaker static class with three leak methods
+**Core Components:**
 
-### 3. **NativeLeaker** (C++/CLI Project)
-Native memory allocator that deliberately leaks heap-allocated memory.
+**MemLeakerHostBase** - Abstract orchestration class
+- `Run()` - Main interactive loop
+- `LeakOnce()` - Single iteration with memory monitoring
+- `PromptUserForOOMRisk()` - Safety checks before allocation
+- `GetManagedLeakStats()` - Retrieves managed leak statistics
+- Abstract methods: `LeakNative(int)`, `LeakManaged(int)`
 
-**Characteristics:**
-- Allocates memory in 100 MB chunks (configurable up to 5000 MB per call)
-- Touches all allocated memory (memset) to ensure physical allocation
-- Never frees allocated memory (intentional leak)
-- Outputs summary (total MB leaked, chunk count)
+**ManagedLeaker** - Intentional managed leak patterns
+- `LeakViaStaticList(int count)` - Stores byte arrays in static list
+- `LeakViaEventHandlers(int count)` - Accumulates event subscribers
+- `LeakViaUndisposedResources(int count)` - Creates undisposed MemoryStreams
+- `LeakManagedMemory(int count)` - Delegates to leak patterns
+- `GetLeakStats()` - Returns leak counts as tuple
 
-**Key file:**
-- `NativeLeaker.cpp` - LeakMemory export function
+**UnmanagedLeaker** - P/Invoke wrapper
+- `LeakNativeMemory(int megabytes)` - DLL import to NativeLeaker.dll
 
-## System Architecture Diagram
+**Configuration & Diagnostics**
+- `ArgsParser` - Command-line argument parsing
+- `LeakOptions` - Configuration container
+- `ProcessMemoryInfo` - Process memory metrics
+- `MemorySnapshot` - Memory state capture and formatting
+- `SystemMemoryInfo` - System commit charge and physical memory
 
-```
-┌─────────────────────────────────────────────────────┐
-│     MemLeakerHostNetFx (Interactive Console)        │
-│  ┌────────────────────────────────────────────┐    │
-│  │ Program.cs (Main Loop)                     │    │
-│  │ - Parse args (native/managed MB, threshold)│    │
-│  │ - Predict commit charge before allocation  │    │
-│  │ - Warn if prediction exceeds threshold     │    │
-│  └────────────────────────────────────────────┘    │
-│  ┌────────────────────────────────────────────┐    │
-│  │ Memory Reporters                           │    │
-│  │ - ProcessMemoryInfo (process counters)    │    │
-│  │ - SystemMemoryInfo (system commit %)      │    │
-│  │ - MemorySnapshot (formatted output)       │    │
-│  └────────────────────────────────────────────┘    │
-└──────────────┬──────────────────────────────────────┘
-			   │
-	   ┌───────┴───────┐
-	   │               │
-	┌──▼──┐      ┌─────▼─────┐
-	│Managed Leak│  Native Leak│
-	│(ManagedLeakerNetFx) │  (NativeLeaker.dll) │
-	└───────┘      └──────────┘
-```
+### NativeLeaker (C++ x64 DLL)
 
-## Prerequisites
+Native unmanaged memory leak implementation. Built independently and copied to host executable output directory via post-build event.
 
-- **Visual Studio 2019** or later (tested on VS 2026 Community)
-- **.NET Framework 4.7.2** (or higher targeting the same framework)
-- **C++ build tools** (for compiling NativeLeaker.dll)
-  - Install from Visual Studio Installer: Desktop development with C++
+**Export:**
+- `LeakNativeMemory(int megabytes)` - Allocates and retains unmanaged heap memory
 
 ## Building
 
-### Option 1: Build in Visual Studio
-
 1. Open `MemLeaker.sln` in Visual Studio
-2. Select **Debug** or **Release** configuration
+2. Select Debug or Release configuration
 3. **Build** > **Build Solution**
-   - The solution will build MemLeakerHostNetFx, ManagedLeakerNetFx, and NativeLeaker
-   - NativeLeaker.dll will be automatically copied to MemLeakerHostNetFx output on successful build
-
-### Option 2: Build from Command Line
-
-```powershell
-cd C:\path\to\MemLeaker
-msbuild MemLeaker.sln /p:Configuration=Debug /p:Platform="Any CPU"
-```
-
-**Output:**
-- `MemLeakerHostNetFx\bin\Debug\MemLeakerHostNetFx.exe` - Main executable
-- `ManagedLeakerNetFx\bin\Debug\ManagedLeakerNetFx.dll` - Managed leak library
-- `NativeLeaker\bin\Debug\NativeLeaker.dll` - Native leak library
+   - Builds MemLeakerHost.Common, MemLeakerHost.NetFx, and NativeLeaker
+   - Post-build event copies NativeLeaker.dll to host output directory
 
 ## Usage
 
-### Running the Interactive Host
-
-```bash
-MemLeakerHostNetFx.exe [--nativeMB <MB>] [--managedCount <count>] [--maxCommitPct <pct|none>]
+```
+MemLeakerHost.NetFx.exe [options]
 ```
 
-### Arguments
+**Options:**
+- `--native <MB>` - Native memory to leak per iteration (1-5000 MB)
+- `--managed <count>` - Managed objects to leak per iteration
+- `--interval <ms>` - Milliseconds between leak iterations (default: 1000)
+- `--max-commit <pct>` - Warn if commit charge exceeds % (1-99, or -1 to disable, default: 80)
+- `--help` - Display usage information
 
-| Argument           | Description                                          | Default |
-|--------------------|------------------------------------------------------|---------|
-| `--nativeMB <MB>`  | Native memory to leak per allocation (1-5000 MB)    | None    |
-| `--managedCount <count>` | Managed objects to leak per allocation           | None    |
-| `--maxCommitPct <pct\|none>` | Warn if commit charge exceeds % (1-99, or `none` to disable) | 80 |
+**Examples:**
 
-### Example Invocations
-
-**Simple managed leak (100 objects per allocation, default 80% threshold):**
-```bash
-MemLeakerHostNetFx.exe --managedCount 100
+Simple managed leak:
+```
+MemLeakerHost.NetFx.exe --managed 1000
 ```
 
-**Native leak (500 MB per allocation, warn at 75% commit):**
-```bash
-MemLeakerHostNetFx.exe --nativeMB 500 --maxCommitPct 75
+Native leak with custom threshold:
+```
+MemLeakerHost.NetFx.exe --native 500 --max-commit 75
 ```
 
-**Combined native and managed, disable warnings:**
-```bash
-MemLeakerHostNetFx.exe --nativeMB 200 --managedCount 50 --maxCommitPct none
+Combined native and managed, no warnings:
 ```
-
-### Interactive Commands
-
-Once running, the tool presents:
-```
-L=leak more  R=refresh stats  Q=quit:
-```
-
-| Command | Action                                               |
-|---------|------------------------------------------------------|
-| `L` (or `leak`, or just Enter) | Perform a leak allocation (native and/or managed) |
-| `R` (or `refresh`) | Refresh and display current memory metrics |
-| `Q` (or `quit`) | Exit the program |
-
-### Memory Output Example
-
-```
-System memory:
-  Commit: 8.5 GB / 12.0 GB (70.8%)
-  Physical: 14.2 GB / 16.0 GB (88.8%)
-
-Process memory (PID 1234):
-  Working Set: 1.2 GB
-  Private Working Set: 1.1 GB
-  Commit Charge: 640 MB
-```
-
-If a prediction was made, accuracy is displayed:
-```
-Prediction accuracy: 98.5% (predicted 512 MB, actual 520 MB)
+MemLeakerHost.NetFx.exe --native 200 --managed 50 --max-commit -1
 ```
 
 ## Memory Leak Mechanisms
 
-### Managed Leaks (ManagedLeakerNetFx)
+### Managed Leaks
 
-1. **Static List** - Stores `~1 MB byte[]` objects in a static list; never cleared
-2. **Event Handlers** - Static event with subscribers that never unsubscribe; publisher holds strong references
-3. **Undisposed Resources** - MemoryStreams in static list without calling Dispose()
+**Static List** - Byte arrays (~1 MB each) stored in static list; never cleared
 
-All three mechanisms prevent garbage collection, causing heap growth.
+**Event Handlers** - Static event with subscribers that never unsubscribe; publisher holds references
 
-### Native Leak (NativeLeaker)
+**Undisposed Resources** - MemoryStreams stored statically without calling Dispose()
+
+All prevent garbage collection and cause heap growth.
+
+### Native Leak
 
 - Allocates virtual address space via `malloc()` in 100 MB chunks
 - Touches all allocated bytes (memset) to ensure physical commitment
 - Never calls `free()` or `VirtualFree()`
-- Results in committed virtual memory that cannot be reclaimed during the process lifetime
+- Results in committed virtual memory that cannot be reclaimed
 
-## OOM Safety Features
+## OOM Safety
 
-The tool includes configurable commit charge thresholds to prevent devastating the system:
+Configurable commit charge thresholds prevent system destabilization:
 
-- **Default threshold: 80%** system commit charge
-- **Configurable range: 1-99%** for custom thresholds
-- **Disable with `--maxCommitPct none`** if testing dangerous scenarios in a protected VM
-- **Warnings appear at initial allocation AND each subsequent leak** before committing
+- Default threshold: 80% system commit charge
+- Configurable range: 1-99%
+- Disable with `--max-commit -1` for isolated testing environments
+- Warnings appear before each allocation that would exceed threshold
 
-If a predicted commit charge would exceed the threshold, the tool prompts:
-```
-WARNING: Allocation would result in 85% commit charge (10.2 GB / 12.0 GB)
-This risks a machine OOM condition.
-Continue anyway? (Y/N):
-```
+## Design Principles
 
-## System Memory Concepts
+1. **Framework-Agnostic Orchestration** - `MemLeakerHostBase` centralizes loop logic and memory monitoring; derived hosts provide only leak details
 
-### Commit Charge
-The total amount of virtual address space **committed** (backed by physical RAM or page file). As VM is committed, this increases. The OS can satisfy commit up to the **commit limit** (usually RAM + pagefile size).
+2. **Reusable Leak Implementations** - `ManagedLeaker` and `UnmanagedLeaker` in shared netstandard2.0 library eliminate duplication
 
-### Physical Memory
-The actual RAM installed and in use. When commit charge exceeds RAM, the OS pages to disk.
+3. **Memory Safety** - Built-in OOM warning system prevents system destabilization
 
-### Why Predict?
-MemLeaker calculates the predicted commit charge *before* allocation to warn if you're about to push the system into a dangerous OOM state.
+4. **Cross-Platform Ready** - Design enables future host implementations (.NET 6+, Mono, etc.)
 
-## Contributing
-
-Contributions welcome! Areas of interest:
-
-- Additional leak pattern implementations (thread-local storage, pinned objects, etc.)
-- Support for .NET 6+ (parallel projects targeting newer frameworks)
-- MacOS/Linux support (requires non-Windows memory APIs)
-- Enhanced memory metrics and reporting
-- Unit tests for leak mechanisms
-
-To contribute:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit and push changes
-4. Submit a pull request
+5. **Diagnostic Transparency** - Per-iteration memory snapshots enable analysis of leak rates and system impact
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for full details.
+MIT License © 2026 Sector 7G Consulting LLC
+
+Designed by Sector 7G Consulting LLC with code generated using various LLMs.
 
 ## Disclaimer
 
-**MemLeaker is designed to INTENTIONALLY leak memory.** Use it only:
-- On dedicated test systems or virtual machines
-- Never on production systems
-- With full understanding of its destructive nature
+**MemLeaker intentionally leaks memory.** Use only on dedicated test systems or virtual machines. Never use on production systems.
 
-Misuse can render a system unstable or unusable. Always set `--maxCommitPct` appropriately or use `none` only in isolated environments.
-
-## Future Enhancements
-
-- [ ] Net 6+ target versions (MemLeakerHostNet6, ManagedLeakerNet6)
-- [ ] ETW event tracing for leak diagnostics
-- [ ] Real-time heap snapshots and diff analysis
-- [ ] Support for thread-local static leaks
-- [ ] Pinned object heap testing
-- [ ] JSON-formatted memory reports
-- [ ] Automated test scenarios (batch leak sequences)
-
-## References
-
-- [Virtual Memory on Windows](https://docs.microsoft.com/en-us/windows/win32/memory/virtual-memory)
-- [Garbage Collection (.NET Framework)](https://docs.microsoft.com/en-us/dotnet/standard/garbage-collection/)
-- [Memory Profiling in Visual Studio](https://docs.microsoft.com/en-us/visualstudio/profiling/memory-usage)
-- [WinDbg Memory Debugging](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/)
+Misuse can render a system unstable or unusable. Always configure `--max-commit` appropriately.
