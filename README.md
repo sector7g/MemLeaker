@@ -66,7 +66,7 @@ Native unmanaged memory leak implementation. Built independently and copied to h
 2. Select Debug or Release configuration
 3. **Build** > **Build Solution**
    - Builds MemLeakerHost.Common, MemLeakerHost.NetFx, and NativeLeaker
-   - Post-build event copies NativeLeaker.dll to host output directory
+   - Post-build event copies NativeLeaker.dll to host output directory (copy manually if needed)
 
 ## Usage
 
@@ -131,18 +131,6 @@ Configurable commit charge thresholds prevent system destabilization:
 - Configurable range: 1-99%
 - Disable with `maxCommitPct none` for isolated testing environments
 - Warnings appear before each allocation that would exceed threshold
-
-## Design Principles
-
-1. **Framework-Agnostic Orchestration** - `MemLeakerHostBase` centralizes loop logic and memory monitoring; derived hosts provide only leak details
-
-2. **Reusable Leak Implementations** - `ManagedLeaker` and `UnmanagedLeaker` in shared netstandard2.0 library eliminate duplication
-
-3. **Memory Safety** - Built-in OOM warning system prevents system destabilization
-
-4. **Cross-Platform Ready** - Design enables future host implementations (.NET 6+, Mono, etc.)
-
-5. **Diagnostic Transparency** - Per-iteration memory snapshots enable analysis of leak rates and system impact
 
 ## License
 
