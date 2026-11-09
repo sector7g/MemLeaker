@@ -137,15 +137,10 @@ All prevent garbage collection and cause heap growth.
 
 ## Dumping and Diagnostics
 
-The NativeLeaker pause-on-console feature is essential for memory diagnostics:
+The NativeLeaker pauses in the console before its function that allocates & sets memory returns.
 
-1. **Run MemLeaker** with desired leak parameters
-2. **Observe the pause prompt** after allocation (the process is still live and holding leaked memory)
-3. **Capture a full user-mode dump** using Task Manager, WinDbg, Procdump, or debugger attach while the process is paused
-4. **Analyze the dump** with tools like WinDbg (`!address`, `!eeheap`, `!heap`) to inspect native and managed heap contents, stack traces, and memory layout
-5. **Press ENTER** in the MemLeaker window to continue (or exit)
-
-This pause mechanism allows you to examine the heap and call stacks at a precise moment—right after the leak—without the process exiting or performing additional operations that would modify the memory state.
+- This allows dumping the process while the function is on the call stack (and thus should appear using the 'k' WinDbg command).
+- Dumping the file at this point is optional and, in any case, pressing ENTER resumes from pause.
 
 ## OOM Safety
 
