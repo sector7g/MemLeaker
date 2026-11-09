@@ -11,9 +11,10 @@
 ## Commit Limit & Commit Charge
 
 - "Commit Limit" is the amount of RAM + the page file's size and represents the machine's memory limit. Example: If RAM is 32GB and page file size is 16GB, commit limit = 48GB.
-- "Commit charge" represents the amount of memory against the commmit limit.
+- "Commit charge" represents the amount of memory against the commit limit.
 - Attempts to allocate memory past the commit limit result in system OOM (out of memory) exception. The offending process will likely crash, thereby freeing the memory and preventing a system crash, but not necessarily guaranteed.
-
+- Task Manager: The memory "tile" under "Performance" has an area labeled "Committed" formatted "x/y" where "x" represents commit charge and "y" commit limit.
+- Process Explorer: The memory tab under "System Information" has a "Commit Charge (k)" box; current is the commit charge and "limit" is the commit limit.
 
 ## Build Output Structure
 
