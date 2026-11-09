@@ -115,6 +115,50 @@ Combined native and managed, no warnings:
 MemLeakerHost.NetFx.exe nativeMB 200 managedCount 50 maxCommitPct none
 ```
 
+## gflags.exe and User-Mode Stack Traces
+
+`gflags.exe` (Global Flags) is a Windows utility that enables advanced debugging features for processes, including **user-mode stack traces (+ust)**, which record the call stack at each heap allocation.
+
+### Enable User-Mode Stack Traces
+
+Enable stack traces for a specific process by executable name:
+
+```
+gflags.exe /i MemLeakerHost.NetFx.exe +ust
+```
+
+or for .NET Core:
+
+```
+gflags.exe /i MemLeakerHost.NetCore.exe +ust
+```
+
+This modifies the `NtGlobalFlag` registry value for the process and applies immediately to new instances.
+
+### Disable User-Mode Stack Traces
+
+Disable stack traces for the same process:
+
+```
+gflags.exe /i MemLeakerHost.NetFx.exe -ust
+```
+
+or:
+
+```
+gflags.exe /i MemLeakerHost.NetCore.exe -ust
+```
+
+### Why User-Mode Stack Traces Matter
+
+When `+ust` is enabled:
+- Every heap allocation records the call stack (up to a configurable depth)
+- WinDbg's `!heap -p -a <address>` command will display the **full call stack** for that allocation
+- You can trace allocations back to their origin (e.g., `NativeLeaker!LeakNativeMemory` or managed code calling into native code)
+- Essential for attributed leak forensics when analyzing memory dumps
+
+Without `+ust`, heap dumps show allocation details but no stack context. With `+ust`, you get the complete picture of *why* memory was allocated at that moment.
+
 ## Memory Leak Mechanisms
 
 ### Managed Leaks
