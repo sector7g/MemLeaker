@@ -1,6 +1,6 @@
 # MemLeaker
 
-A cross-platform memory leak generator and diagnostic tool for testing memory management and monitoring under intentional leak conditions.
+A Windows memory leak generator and diagnostic tool for testing memory management and monitoring under intentional leak conditions.
 
 ## Overview
 
