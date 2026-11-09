@@ -3,7 +3,7 @@
 // Designed by Sector 7G Consulting LLC with code generated using various LLMs.
 //
 // Program.cs
-// .NET Framework 4.7.2 entry point for interactive memory leak host.
+// .NET Framework entry point for interactive memory leak host.
 
 using System;
 using MemLeakerHost.Common;

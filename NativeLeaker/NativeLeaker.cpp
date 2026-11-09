@@ -5,7 +5,6 @@
 // NativeLeaker.cpp
 // Native C++ memory leak DLL.
 // Exports LeakNativeMemory(int megabytes) which allocates and intentionally leaks heap memory.
-// Allocates in 100 MB chunks, touches all bytes, and never frees.
 
 #include <windows.h>
 #include <cstdlib>
