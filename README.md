@@ -2,13 +2,25 @@
 
 A Windows memory leak generator and diagnostic tool for testing memory management and monitoring under intentional leak conditions.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Building](#building)
+- [Usage](#usage)
+- [gflags.exe and User-Mode Stack Traces](#gflagsexe-and-user-mode-stack-traces)
+- [Memory Leak Mechanisms](#memory-leak-mechanisms)
+- [NativeLeaker's Console Pause](#nativeleakers-console-pause)
+- [OOM Safety](#oom-safety)
+- [License](#license)
+- [Disclaimer](#disclaimer)
+
 ## Overview
 
-MemLeaker deliberately allocates and leaks memory via multiple mechanisms—native heap, managed heap, and undisposed resources—to simulate real-world memory leak scenarios. It's useful for:
+MemLeaker deliberately allocates and leaks memory via native heap, managed heap, and undisposed resources to simulate memory leak scenarios. It's useful for:
 
 - Testing memory monitoring tools (debuggers, profilers, ETW)
 - Understanding memory leak patterns in both native and managed code
-- Validating Out-Of-Memory (OOM) safeguards with configurable commit charge thresholds
 - Demonstrating memory leak mechanisms in educational contexts
 
 ## Architecture
