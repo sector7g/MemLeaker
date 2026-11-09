@@ -135,7 +135,7 @@ All prevent garbage collection and cause heap growth.
 - Results in committed virtual memory that cannot be reclaimed
 - **Pauses on console input** after allocation completes, allowing the host process to remain live while you capture memory dumps, heap snapshots, or debugging sessions. Press ENTER to continue the leak loop or exit.
 
-## Dumping and Diagnostics
+## NativeLeaker's Console Pause
 
 The NativeLeaker pauses in the console before its function that allocates & sets memory returns.
 
