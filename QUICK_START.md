@@ -54,7 +54,7 @@ MemLeakerHost.NetFx.exe managedCount 50 maxCommitPct none
 
 ---
 
-## Scenario 1: Basics
+## Basic Scenario
 
 **Objective:**
 - Leak 300 MB native memory and 100 managed objects
