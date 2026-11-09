@@ -13,11 +13,19 @@ MemLeaker deliberately allocates and leaks memory via multiple mechanisms—nati
 
 ## Architecture
 
-The solution consists of three core components:
+The solution consists of four core components:
 
-### MemLeakerHost.NetFx (.NET Framework 4.7.2 Executable)
+### MemLeakerHost.NetFx (.NET Framework 4.8 Executable)
 
 Interactive memory leak host for .NET Framework. Derives from `MemLeakerHostBase` and implements framework-specific leak invocations.
+
+**Key Methods:**
+- `LeakNative(int megabytes)` → `UnmanagedLeaker.LeakNativeMemory(megabytes)`
+- `LeakManaged(int count)` → `ManagedLeaker.LeakManagedMemory(count)`
+
+### MemLeakerHost.NetCore (.NET 8 Executable)
+
+Interactive memory leak host for modern .NET. SDK-style project targeting `net8.0`. Same architecture as MemLeakerHost.NetFx with identical leak simulation capabilities.
 
 **Key Methods:**
 - `LeakNative(int megabytes)` → `UnmanagedLeaker.LeakNativeMemory(megabytes)`
@@ -34,7 +42,7 @@ Reusable shared infrastructure for leak hosts, memory monitoring, and diagnostic
 - `LeakOnce()` - Single iteration with memory monitoring
 - `PromptUserForOOMRisk()` - Safety checks before allocation
 - `GetManagedLeakStats()` - Retrieves managed leak statistics
-- Abstract methods: `LeakNative(int)`, `LeakManaged(int)`
+- Concrete methods: `LeakNative(int)`, `LeakManaged(int)` (delegate to UnmanagedLeaker and ManagedLeaker)
 
 **ManagedLeaker** - Intentional managed leak patterns
 - `LeakViaStaticList(int count)` - Stores byte arrays in static list
@@ -65,19 +73,22 @@ Native unmanaged memory leak implementation. Built independently and copied to h
 1. Open `MemLeaker.sln` in Visual Studio
 2. Select Debug or Release configuration
 3. **Build** > **Build Solution**
-   - Builds MemLeakerHost.Common, MemLeakerHost.NetFx, and NativeLeaker
-   - Post-build event copies NativeLeaker.dll to host output directory (copy manually if needed)
+   - Builds MemLeakerHost.Common, MemLeakerHost.NetFx, MemLeakerHost.NetCore, and NativeLeaker
+   - Post-build events copy NativeLeaker.dll and gflags.exe to host output directories
+   - If DLL/gflags missing after build, copy manually from NativeLeaker\bin\<Config> and tools\ directories
 
 ## Usage
 
+Both host executables support identical command-line syntax:
+
 ```
-MemLeakerHost.NetFx.exe nativeMB <1-5000> [managedCount <1-5000>] [maxCommitPct <1-99|none>]
+MemLeakerHost.[NetFx|NetCore].exe nativeMB <1-5000> [managedCount <1-5000>] [maxCommitPct <1-99|none>]
 ```
 
 or
 
 ```
-MemLeakerHost.NetFx.exe managedCount <1-5000> [maxCommitPct <1-99|none>]
+MemLeakerHost.[NetFx|NetCore].exe managedCount <1-5000> [maxCommitPct <1-99|none>]
 ```
 
 **Parameters:**
@@ -89,14 +100,14 @@ MemLeakerHost.NetFx.exe managedCount <1-5000> [maxCommitPct <1-99|none>]
 
 **Examples:**
 
-Simple managed leak:
+Simple managed leak (.NET Framework):
 ```
 MemLeakerHost.NetFx.exe managedCount 1000
 ```
 
-Native leak with custom threshold:
+Native leak with custom threshold (.NET 8):
 ```
-MemLeakerHost.NetFx.exe nativeMB 500 maxCommitPct 75
+MemLeakerHost.NetCore.exe nativeMB 500 maxCommitPct 75
 ```
 
 Combined native and managed, no warnings:
@@ -118,10 +129,23 @@ All prevent garbage collection and cause heap growth.
 
 ### Native Leak
 
-- Allocates virtual address space via `malloc()` in 100 MB chunks
-- Touches all allocated bytes (memset) to ensure physical commitment
+- Allocates virtual address space via `malloc()` in dynamically-sized chunks (100 MB for allocations ≥100 MB, smaller for smaller allocations)
+- Touches all allocated bytes (memset with `0x21`) to ensure physical commitment
 - Never calls `free()` or `VirtualFree()`
 - Results in committed virtual memory that cannot be reclaimed
+- **Pauses on console input** after allocation completes, allowing the host process to remain live while you capture memory dumps, heap snapshots, or debugging sessions. Press ENTER to continue the leak loop or exit.
+
+## Dumping and Diagnostics
+
+The NativeLeaker pause-on-console feature is essential for memory diagnostics:
+
+1. **Run MemLeaker** with desired leak parameters
+2. **Observe the pause prompt** after allocation (the process is still live and holding leaked memory)
+3. **Capture a full user-mode dump** using Task Manager, WinDbg, Procdump, or debugger attach while the process is paused
+4. **Analyze the dump** with tools like WinDbg (`!address`, `!eeheap`, `!heap`) to inspect native and managed heap contents, stack traces, and memory layout
+5. **Press ENTER** in the MemLeaker window to continue (or exit)
+
+This pause mechanism allows you to examine the heap and call stacks at a precise moment—right after the leak—without the process exiting or performing additional operations that would modify the memory state.
 
 ## OOM Safety
 
