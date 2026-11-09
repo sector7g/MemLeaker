@@ -27,7 +27,17 @@ void LeakNativeMemory(int megabytes) {
         return;
     }
 
-    const std::size_t chunkSize = 100ull * 1024 * 1024; // 100 MB chunks
+    // Select chunk size based on allocation size
+    // Large allocations: 100 MB chunks, medium: 10 MB chunks, small: 1 MB chunks
+    std::size_t chunkSize;
+    if (megabytes >= 100) {
+        chunkSize = 100ull * 1024 * 1024; // 100 MB chunks
+    } else if (megabytes >= 10) {
+        chunkSize = 10ull * 1024 * 1024;  // 10 MB chunks
+    } else {
+        chunkSize = 1ull * 1024 * 1024;   // 1 MB chunks
+    }
+
     std::size_t remaining = static_cast<std::size_t>(megabytes) * 1024 * 1024;
     int iteration = 0;
 
@@ -42,8 +52,8 @@ void LeakNativeMemory(int megabytes) {
             return;
         }
 
-        // Touch the entire allocation so all reserved memory is committed
-        std::memset(ptr, 0xAB, thisSize);
+		// Write "!" in the entire allocation so all reserved memory is committed and with something conspicuous
+        std::memset(ptr, 0x21, thisSize);
 
         // Intentionally do NOT free(ptr)
         remaining -= thisSize;
@@ -55,6 +65,12 @@ void LeakNativeMemory(int megabytes) {
                   "LeakNativeMemory: done. %d MB leaked in %d chunk(s).",
                   megabytes, iteration);
     Log(summary);
+
+    // Pause and wait for user input to allow time for debugger/dump capture with LeakNativeMemory on the call stack
+    if (GetConsoleWindow() != nullptr) {
+        std::cout << "Press ENTER to continue..." << std::endl;
+        std::cin.get();
+    }
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {

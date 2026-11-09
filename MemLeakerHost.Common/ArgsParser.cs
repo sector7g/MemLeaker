@@ -82,8 +82,8 @@ namespace MemLeakerHost.Common
         static void PrintUsage()
         {
             Console.WriteLine("Usage (at least one of nativeMB or managedCount required):");
-            Console.WriteLine("  MemLeakerHost.exe nativeMB <1-5000> [managedCount <1-5000>] [maxCommitPct <1-99|none>]");
-            Console.WriteLine("  MemLeakerHost.exe managedCount <1-5000> [maxCommitPct <1-99|none>]");
+            Console.WriteLine("  MemLeakerHost.[NetFx|NetCore].exe nativeMB <1-5000> [managedCount <1-5000>] [maxCommitPct <1-99|none>]");
+            Console.WriteLine("  MemLeakerHost.[NetFx|NetCore].exe managedCount <1-5000> [maxCommitPct <1-99|none>]");
             Console.WriteLine();
             Console.WriteLine("Parameters:");
             Console.WriteLine("  nativeMB       - Native memory to leak per allocation (1-5000 MB)");
@@ -94,10 +94,10 @@ namespace MemLeakerHost.Common
             Console.WriteLine("                   (default: 80)");
             Console.WriteLine();
             Console.WriteLine("Examples:");
-            Console.WriteLine("  MemLeakerHost.exe nativeMB 1000 managedCount 100");
-            Console.WriteLine("  MemLeakerHost.exe nativeMB 500");
-            Console.WriteLine("  MemLeakerHost.exe nativeMB 1000 maxCommitPct 90");
-            Console.WriteLine("  MemLeakerHost.exe managedCount 50 maxCommitPct none");
+            Console.WriteLine("  MemLeakerHost.[NetFx|NetCore].exe nativeMB 1000 managedCount 100");
+            Console.WriteLine("  MemLeakerHost.[NetFx|NetCore].exe nativeMB 500");
+            Console.WriteLine("  MemLeakerHost.[NetFx|NetCore].exe nativeMB 1000 maxCommitPct 90");
+            Console.WriteLine("  MemLeakerHost.[NetFx|NetCore].exe managedCount 50 maxCommitPct none");
         }
     }
 

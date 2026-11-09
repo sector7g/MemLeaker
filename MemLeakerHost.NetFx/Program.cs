@@ -3,8 +3,7 @@
 // Designed by Sector 7G Consulting LLC with code generated using various LLMs.
 //
 // Program.cs
-// .NET Framework 4.7.2 Interactive memory leak host.
-// Thin wrapper around MemLeakerHostBase that provides framework-specific leak invocations.
+// .NET Framework 4.7.2 entry point for interactive memory leak host.
 
 using System;
 using MemLeakerHost.Common;
@@ -22,21 +21,5 @@ class Program : MemLeakerHostBase
 
         var host = new Program(options);
         host.Run();
-    }
-
-    /// <summary>
-    /// Implement native leak invocation for .NET Framework host.
-    /// </summary>
-    protected override void LeakNative(int megabytes)
-    {
-        UnmanagedLeaker.LeakNativeMemory(megabytes);
-    }
-
-    /// <summary>
-    /// Implement managed leak invocation for .NET Framework host.
-    /// </summary>
-    protected override void LeakManaged(int count)
-    {
-        ManagedLeaker.LeakManagedMemory(count);
     }
 }

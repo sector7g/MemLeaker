@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MemLeakerHost.Common\MemLeakerHost.Common.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyNativeLeakerDll" AfterTargets="Build">
+    <PropertyGroup>
+      <NativeBin>$(MSBuildThisFileDirectory)..\NativeLeaker\bin\$(Configuration)\</NativeBin>
+      <NativeDll>$(NativeBin)NativeLeaker.dll</NativeDll>
+    </PropertyGroup>
+    <Copy SourceFiles="$(NativeDll)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="false" Condition="Exists('$(NativeDll)')" />
+    <Copy SourceFiles="$(NativeBin)NativeLeaker.pdb" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="false" Condition="Exists('$(NativeBin)NativeLeaker.pdb')" />
+    <Warning Text="NativeLeaker.dll not found at $(NativeDll). Build the NativeLeaker ($(Configuration)|x64) project first." Condition="!Exists('$(NativeDll)')" />
+  </Target>
+  <Target Name="CopyGflags" AfterTargets="Build">
+    <PropertyGroup>
+      <GflagsPath>$(MSBuildThisFileDirectory)..\tools\gflags.exe</GflagsPath>
+    </PropertyGroup>
+    <Copy SourceFiles="$(GflagsPath)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="false" Condition="Exists('$(GflagsPath)')" />
+    <Warning Text="gflags.exe not found at $(GflagsPath)." Condition="!Exists('$(GflagsPath)')" />
+  </Target>
+
+</Project>

@@ -189,14 +189,20 @@ namespace MemLeakerHost.Common
         }
 
         /// <summary>
-        /// Abstract method for derived classes to implement native leak invocation.
+        /// Concrete implementation: invoke native leak via P/Invoke wrapper.
         /// </summary>
-        protected abstract void LeakNative(int megabytes);
+        protected virtual void LeakNative(int megabytes)
+        {
+            UnmanagedLeaker.LeakNativeMemory(megabytes);
+        }
 
         /// <summary>
-        /// Abstract method for derived classes to implement managed leak invocation.
+        /// Concrete implementation: invoke managed leak via shared library.
         /// </summary>
-        protected abstract void LeakManaged(int count);
+        protected virtual void LeakManaged(int count)
+        {
+            ManagedLeaker.LeakManagedMemory(count);
+        }
 
         /// <summary>
         /// Get managed leak statistics from local ManagedLeaker library.
